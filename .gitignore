@@ -1,0 +1,11 @@
+*.zip
+furious.txt
+/db/*
+/Waze/*
+/Healthdb_Secure/*
+/DCIM/*
+/thumb/*
+/Photos SQLITE/*
+paths.txt
+*.csv
+/files_full/*
