@@ -6,6 +6,9 @@ furious.txt
 /DCIM/*
 /thumb/*
 /Photos SQLITE/*
-paths.txt
 *.csv
 /files_full/*
+/build/*
+/dist/*
+main.spec
+*.exe

@@ -1,9 +1,11 @@
+import os
 import sqlite3
 import datetime
 import plistlib
 import biplist
 import outils
 import json
+import sys
 
 
 def obliterated(zip_ref):
@@ -420,9 +422,17 @@ def photos():
     print('Querie to photos.sqlite.')
     with open('./db/data_ark.plist', 'rb') as fp:
         plist_data = plistlib.load(fp)
-        os = plist_data['-DarkProductVersion'].split('.')[0]
+        osv = plist_data['-DarkProductVersion'].split('.')[0]
 
-    with open(f'./ScottKjr3347/{os}.txt') as req:
+    # Accès au fichier de requêtes avec Pyinstaller
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    # Accès au fichier de requêtes normal
+    else:
+        base_path = os.path.abspath("ScottKjr3347/")
+
+    file_path = os.path.join(base_path, f'{osv}.txt')
+    with open(file_path) as req:
         query = req.read()
 
     try:
