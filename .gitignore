@@ -12,3 +12,9 @@ furious.txt
 /dist/*
 main.spec
 *.exe
+*.tar
+*.tar.gz
+/iOS*
+main2.py
+/.venv/*
+/__pycache__/*

@@ -22,7 +22,7 @@ def obliterated(zip_ref):
             - 'DATE DE REINITIALISATION (.obliterated)': [reinit]
                 where 'reinit' is the formatted creation date in the format 'dd/mm/yyyy à HH:MM:SS'.
         If the file is not present:
-            - 'DATE DE REINITIALISATION (.obliterated)': ['LE FICHIER .obliterated N\'EST PAS PRESENT DANS LE FICHIER ZIP']
+            - 'DATE DE REINITIALISATION (.obliterated)': ['LE FICHIER .obliterated N\'A PAS ETE TROUVE DANS LE FICHIER ZIP']
 
         If the creation date cannot be determined:
             - 'DATE DE REINITIALISATION (.obliterated)': ['LE FICHIER A ETE TROUVE MAIS LE PROGRAMME N\'A PAS REUSSI A DETERMINER LA DATE DE CE DERNIER. UNE VERIFICATION MANUELLE EST NECESSAIRE']
@@ -42,7 +42,7 @@ def obliterated(zip_ref):
             }
     else:
         return {
-            'DATE DE REINITIALISATION (.obliterated):': ['LE FICHIER .obliterated N\'EST PAS PRESENT DANS LE FICHIER ZIP']
+            'DATE DE REINITIALISATION (.obliterated):': ['LE FICHIER .obliterated N\'A PAS ETE TROUVE DANS LE FICHIER ZIP']
         }
 
 
@@ -516,4 +516,55 @@ def instagram():
             if 'username' in plist_data['last-logged-in-account-dict'] and 'profilePictureURLString' in plist_data['last-logged-in-account-dict']:
                 line_export['APPLICATION INSTAGRAM : '].append('Dernier utilisateur qui s\'est connecté : ' +
                                                                plist_data['last-logged-in-account-dict']['username'] + '(' + plist_data['last-logged-in-account-dict']['profilePictureURLString'] + ')')
+    return line_export
+
+
+def sms():
+    """
+    Query the sms.db database for extract SMS
+    Generates 1 csv with the messages
+    Use the APOLLO Script : https://github.com/mac4n6/APOLLO/blob/master/modules/sms_chat.txt
+
+    Returns:
+        dict: A dictionary containing a list with the information on the created files.
+    """
+    query = """
+    SELECT
+		CASE
+			WHEN LENGTH(MESSAGE.DATE)=18 THEN DATETIME(MESSAGE.DATE/1000000000+978307200,'UNIXEPOCH')
+			WHEN LENGTH(MESSAGE.DATE)=9 THEN DATETIME(MESSAGE.DATE + 978307200,'UNIXEPOCH')
+			ELSE "N/A"
+    		END "MESSAGE DATE",			
+		CASE 
+			WHEN LENGTH(MESSAGE.DATE_DELIVERED)=18 THEN DATETIME(MESSAGE.DATE_DELIVERED/1000000000+978307200,"UNIXEPOCH")
+			WHEN LENGTH(MESSAGE.DATE_DELIVERED)=9 THEN DATETIME(MESSAGE.DATE_DELIVERED+978307200,"UNIXEPOCH")
+			ELSE "N/A"
+		END "DATE DELIVERED",
+		CASE 
+			WHEN LENGTH(MESSAGE.DATE_READ)=18 THEN DATETIME(MESSAGE.DATE_READ/1000000000+978307200,"UNIXEPOCH")
+			WHEN LENGTH(MESSAGE.DATE_READ)=9 THEN DATETIME(MESSAGE.DATE_READ+978307200,"UNIXEPOCH")
+			ELSE "N/A"
+		END "DATE READ",
+		MESSAGE.TEXT AS "MESSAGE",
+		HANDLE.ID AS "CONTACT ID",
+		MESSAGE.SERVICE AS "SERVICE",
+		MESSAGE.ACCOUNT AS "ACCOUNT",
+		MESSAGE.IS_DELIVERED AS "IS DELIVERED",
+		MESSAGE.IS_FROM_ME AS "IS FROM ME",
+		ATTACHMENT.FILENAME AS "FILENAME",
+		ATTACHMENT.MIME_TYPE AS "MIME TYPE",
+		ATTACHMENT.TRANSFER_NAME AS "TRANSFER TYPE",
+		ATTACHMENT.TOTAL_BYTES AS "TOTAL BYTES"
+	FROM MESSAGE
+	LEFT OUTER JOIN MESSAGE_ATTACHMENT_JOIN ON MESSAGE.ROWID = MESSAGE_ATTACHMENT_JOIN.MESSAGE_ID
+	LEFT OUTER JOIN ATTACHMENT ON MESSAGE_ATTACHMENT_JOIN.ATTACHMENT_ID = ATTACHMENT.ROWID
+	LEFT OUTER JOIN HANDLE ON MESSAGE.HANDLE_ID = HANDLE.ROWID
+    """
+    outils.extract_and_save(query, 'sms.csv',
+                            "./db/sms.db", 'SMS')
+    line_export = {
+        'SMS :': [
+            'Les SMS ont été exportés dans le dossier SMS (fichier sms.csv)',
+        ]
+    }
     return line_export
