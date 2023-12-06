@@ -2,6 +2,7 @@ import sqlite3
 import csv
 import os
 import datetime
+import shutil
 
 
 def write_file(lines_dict):
@@ -20,27 +21,28 @@ def write_file(lines_dict):
     try:
         with open('furious.txt', 'a', encoding="utf-8") as txt:
             for dico in lines_dict:
-                categorie = list(dico.keys())[0]
-                txt.write(f'---- {categorie} ----\n')
-                value = dico[categorie]
+                if dico != None:
+                    categorie = list(dico.keys())[0]
+                    txt.write(f'---- {categorie} ----\n')
+                    value = dico[categorie]
 
-                # On vérifie si la valeur est une liste ou une liste de listes (CellularUsage)
-                if isinstance(value, list):
-                    if all(isinstance(sublist, list) for sublist in value):
-                        # S'il s'agit d'une liste de listes, on l'applatit avant d'écrire dans le fichier
-                        flattened_value = [
-                            item for sublist in value for item in sublist]
-                        for line in flattened_value:
-                            txt.write(line + '\n')
+                    # On vérifie si la valeur est une liste ou une liste de listes (CellularUsage)
+                    if isinstance(value, list):
+                        if all(isinstance(sublist, list) for sublist in value):
+                            # S'il s'agit d'une liste de listes, on l'applatit avant d'écrire dans le fichier
+                            flattened_value = [
+                                item for sublist in value for item in sublist]
+                            for line in flattened_value:
+                                txt.write(line + '\n')
+                        else:
+                            # S'il s'agit d'une liste normale, on écrit ses éléments dans le fichier
+                            for line in value:
+                                txt.write(line + '\n')
                     else:
-                        # S'il s'agit d'une liste normale, on écrit ses éléments dans le fichier
-                        for line in value:
-                            txt.write(line + '\n')
-                else:
-                    # S'il ne s'agit pas d'une liste, il suffit de l'écrire dans le fichier
-                    txt.write(str(value) + '\n')
+                        # S'il ne s'agit pas d'une liste, il suffit de l'écrire dans le fichier
+                        txt.write(str(value) + '\n')
 
-                txt.write('\n')
+                    txt.write('\n')
     except Exception:
         erreur += 1
     if erreur == 0:
@@ -85,14 +87,15 @@ def extract_and_save(query, csv_filename, database, output_folder):
     column_names = [col[0] for col in cursor.description]
     conn.close()
 
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    if len(data) > 1:
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
-    csv_path = os.path.join(output_folder, csv_filename)
-    with open(csv_path, "w", newline="", encoding='utf-8') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(column_names)
-        csv_writer.writerows(data)
+        csv_path = os.path.join(output_folder, csv_filename)
+        with open(csv_path, "w", newline="", encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(column_names)
+            csv_writer.writerows(data)
 
 
 def move_to_root(dir_target, file_to_move):
@@ -127,11 +130,19 @@ def move_to_dir(dir, dir_path, file_to_move):
     """
     extracted_file_path = os.path.join(
         dir, file_to_move.lstrip('/'))
-    new_extracted_file_path = os.path.join(
-        dir_path, os.path.basename(file_to_move))
+    # new_extracted_file_path = os.path.join(
+    #     dir_path, os.path.basename(file_to_move))
+    new_extracted_file_path = dir_path + '/' + os.path.basename(file_to_move)
     if not os.path.exists(dir_path):
         os.makedirs(dir_path, exist_ok=True)
-    os.rename(extracted_file_path, new_extracted_file_path)
+    try:
+        os.rename(extracted_file_path, new_extracted_file_path)
+    except FileExistsError:
+        print(
+            f'Erreur lors du déplacement du fichier, ce fichier existe déjà dans {new_extracted_file_path}')
+    except Exception as e:
+        print(
+            f'Erreur lors du déplacement du fichier : {e}')
 
 
 def move_to_thumb(dir_thumb, dir_path, file_to_move):
@@ -148,8 +159,9 @@ def move_to_thumb(dir_thumb, dir_path, file_to_move):
     """
     extracted_file_path = os.path.join(
         dir_thumb, file_to_move.lstrip('/'))
-    new_dir = dir_thumb + dir_path.lstrip('/')
-    new_extracted_file_path = new_dir + os.path.basename(file_to_move)
+    new_dir = dir_thumb + \
+        dir_path.split('/')[-3] + '/' + dir_path.split('/')[-2]
+    new_extracted_file_path = new_dir + '/' + os.path.basename(file_to_move)
     if not os.path.exists(new_dir):
         os.makedirs(new_dir, exist_ok=True)
     os.rename(extracted_file_path, new_extracted_file_path)
@@ -169,3 +181,15 @@ def convert_to_mac_absolutetime(timestamp):
     dt = datetime.datetime(1970, 1, 1) + \
         datetime.timedelta(seconds=mac_absolute_time)
     return dt.strftime("%d/%m/%Y à %H:%M:%S")
+
+
+def remove_directory(directory, subdirectory):
+    subdirectory_path = os.path.join(directory, subdirectory)
+    if os.path.exists(subdirectory_path):
+        shutil.rmtree(subdirectory_path)
+
+
+def remove_private_and_filesystems(directory):
+    remove_directory(directory, 'private')
+    remove_directory(directory, 'filesystem1')
+    remove_directory(directory, 'filesystem2')

@@ -8,41 +8,34 @@ import json
 import sys
 
 
-def obliterated(zip_ref):
+def obliterated(zip_ref, path):
     """
     Examine a ZipFile object to check if the file '/private/var/root/.obliterated' is present. 
     If the file is found, it retrieves the creation date but does not extract it.
 
     Parameters:
     zip_ref (ZipFile): A ZipFile object representing the archive to be examined (Full File System)
+    path (str): the file path
 
     Returns:
     dict: A dictionary containing information about the '/private/var/root/.obliterated' file for integration in txt output.
         If the file is present:
             - 'DATE DE REINITIALISATION (.obliterated)': [reinit]
                 where 'reinit' is the formatted creation date in the format 'dd/mm/yyyy à HH:MM:SS'.
-        If the file is not present:
-            - 'DATE DE REINITIALISATION (.obliterated)': ['LE FICHIER .obliterated N\'A PAS ETE TROUVE DANS LE FICHIER ZIP']
-
         If the creation date cannot be determined:
             - 'DATE DE REINITIALISATION (.obliterated)': ['LE FICHIER A ETE TROUVE MAIS LE PROGRAMME N\'A PAS REUSSI A DETERMINER LA DATE DE CE DERNIER. UNE VERIFICATION MANUELLE EST NECESSAIRE']
     """
     # Si le fichier à extraire est obliterated, alors on récupère la date de création mais on ne l'extrait pas.
-    if '/private/var/root/.obliterated' in zip_ref.namelist():
-        info = zip_ref.getinfo('/private/var/root/.obliterated')
-        reinit = datetime.datetime(
-            *info.date_time).strftime('%d/%m/%Y à %H:%M:%S')
-        if reinit != '':
-            return {
-                'DATE DE REINITIALISATION (.obliterated):': [reinit]
-            }
-        else:
-            return {
-                'DATE DE REINITIALISATION (.obliterated):': ['LE FICHIER A ETE TROUVE MAIS LE PROGRAMME N\'A PAS REUSSI A DETERMINER LA DATE DE CE DERNIER. UNE VERIFICATION MANUELLE EST NECESSAIRE']
-            }
+    info = zip_ref.getinfo(path)
+    reinit = datetime.datetime(
+        *info.date_time).strftime('%d/%m/%Y à %H:%M:%S')
+    if reinit != '':
+        return {
+            'DATE DE REINITIALISATION (.obliterated):': [reinit]
+        }
     else:
         return {
-            'DATE DE REINITIALISATION (.obliterated):': ['LE FICHIER .obliterated N\'A PAS ETE TROUVE DANS LE FICHIER ZIP']
+            'DATE DE REINITIALISATION (.obliterated):': ['LE FICHIER A ETE TROUVE MAIS LE PROGRAMME N\'A PAS REUSSI A DETERMINER LA DATE DE CE DERNIER. UNE VERIFICATION MANUELLE EST NECESSAIRE']
         }
 
 
@@ -160,19 +153,20 @@ def commcenter():
                                                      plist_data['PhoneNumber'])
 
         for k, v in personal_wallet.items():
-            construct_line = 'ICCID :' + k + ' { '
+            construct_line = 'ICCID : ' + k + ' { '
             if 'CarrierEntitlements' in personal_wallet[k].keys():
                 if 'lastGoodImsi' in personal_wallet[k]['CarrierEntitlements']:
                     construct_line = construct_line + 'IMSI : ' + \
                         personal_wallet[k]['CarrierEntitlements']['lastGoodImsi']
                 if 'kEntitlementsSelfRegistrationUpdateImei' in personal_wallet[k]['CarrierEntitlements']:
-                    construct_line = construct_line + 'IMEI : ' + \
+                    construct_line = construct_line + ', IMEI : ' + \
                         personal_wallet[k]['CarrierEntitlements']['kEntitlementsSelfRegistrationUpdateImei']
             if 'phonebook' in personal_wallet[k].keys():
                 if 'CopiedSIMPhoneNumber' in personal_wallet[k]['phonebook']:
-                    construct_line = construct_line + ' Numéro d\'appel : ' + \
+                    construct_line = construct_line + ', Numéro d\'appel : ' + \
                         personal_wallet[k]['phonebook']['CopiedSIMPhoneNumber']
             construct_line = construct_line + ' }'
+            line_export['APPLE COMMCENTER :'].append(construct_line)
     return line_export
 
 
@@ -204,12 +198,19 @@ def aggregated():
     with open('./db/com.apple.aggregated.plist', 'rb') as fp:
         plist_data = plistlib.load(fp)
         line_export = {
-            'AGGREGATED.PLIST :': [
-                'Date de dernier redémarrage : ' +
-                datetime.datetime.fromtimestamp(
-                    plist_data['LastBoottime']).strftime('%d-%m-%Y %H:%M:%S Heure Locale'),
-            ]
+            'AGGREGATED.PLIST :': []
         }
+
+        if 'LastBoottime' in plist_data.keys():
+            date_reboot = datetime.datetime.fromtimestamp(
+                plist_data['LastBoottime']).strftime('%d-%m-%Y %H:%M:%S Heure Locale')
+            line_export['AGGREGATED.PLIST :'].append(
+                'Date de dernier redémarrage : ' + date_reboot)
+
+        if 'UserName' in plist_data.keys():
+            username = plist_data['UserName']
+            line_export['AGGREGATED.PLIST :'].append(f'USERNAME : {username}')
+
     return line_export
 
 
@@ -279,7 +280,7 @@ def waze():
 
     line_export = {
         'APPLICATION WAZE :': [
-            'Données de l\'application exportée en 3 fichiers : places.csv, recents.csv et favorites.csv\nCes fichiers sont placés dans le dossier "Waze"',
+            'Si cette application comporte des données, elles ont été exportée en 3 fichiers : places.csv, recents.csv et favorites.csv\nCes fichiers sont placés dans le dossier "Waze"\nSi ce dossier n\'existe pas, c\'est qu\'il n\'y a pas de données retournées par les requêtes automatisées.',
         ]
     }
     return line_export
@@ -316,13 +317,17 @@ def snapchat(zip_ref):
             else:
                 associated_snap_accounts[old_account] = {modification_date}
 
-    for ancien_compte, horodatage in associated_snap_accounts.items():
-        if len(horodatage) > 1:
-            line_export_snapchat['SNAPCHAT :'].append(
-                ancien_compte + ' contient des fichiers horodatés du : ' + min(horodatage).strftime('%d-%m-%Y à %H:%M:%S') + ' au ' + max(horodatage).strftime('%d-%m-%Y à %H:%M:%S'))
-        else:
-            line_export_snapchat['SNAPCHAT :'].append(
-                ancien_compte + ' contient des fichiers horodatés du : ' + str(next(iter(horodatage))))
+    if len(associated_snap_accounts) > 0:
+        for ancien_compte, horodatage in associated_snap_accounts.items():
+            if len(horodatage) > 1:
+                line_export_snapchat['SNAPCHAT :'].append(
+                    ancien_compte + ' contient des fichiers horodatés du : ' + min(horodatage).strftime('%d-%m-%Y à %H:%M:%S') + ' au ' + max(horodatage).strftime('%d-%m-%Y à %H:%M:%S'))
+            else:
+                line_export_snapchat['SNAPCHAT :'].append(
+                    ancien_compte + ' contient des fichiers horodatés du : ' + str(next(iter(horodatage))))
+    else:
+        line_export_snapchat['SNAPCHAT :'].append(
+            'Pas d\'historique de comptes trouvés')
     return line_export_snapchat
 
 
@@ -331,33 +336,37 @@ def preferences():
     Read the file com.apple.Preferences.plist and extract the phone's model.
 
     Returns:
-        dict: A dictionary containing a list with the phone's model for the txt output.
+        dict: A dictionary containing a list with the phone's model for the txt output if the 'SSdeviceType' key exists
     """
     with open('./db/com.apple.Preferences.plist', 'rb') as fp:
         plist_data = plistlib.load(fp)
-        line_export = {
-            'PREFERENCES.PLIST :': [
-                'Modèle : ' + plist_data['SSDeviceType']['hardwareModel']
-            ]
-        }
-    return line_export
+        if 'SSDeviceType' in plist_data.keys():
+            if 'hardwareModel' in plist_data['SSDeviceType'].keys():
+                return {
+                    'PREFERENCES.PLIST :': [
+                        'Modèle : ' +
+                        plist_data['SSDeviceType']['hardwareModel']
+                    ]
+                }
 
 
 def data_ark():
     """
-    Read the file data_ark.plist and extract the phone's name.
+    Read the file data_ark.plist and extract the phone's name if in the plist
 
     Returns:
-        dict: A dictionary containing a list with the phone's name for the txt output.
+        dict: A dictionary containing a list with the phone's name for the txt output or an empty dictionary
     """
     with open('./db/data_ark.plist', 'rb') as fp:
         plist_data = plistlib.load(fp)
-    line_export = {
-        'DATA_ARK :': [
-            'Nom de l\'appareil :' + plist_data['-DeviceName']
-        ]
-    }
-    return line_export
+        if '-DeviceName' in plist_data.keys():
+            line_export = {
+                'DATA_ARK :': [
+                    'Nom de l\'appareil :' + plist_data['-DeviceName']
+                ]
+            }
+            return line_export
+    return {}
 
 
 def activation_record():
@@ -420,34 +429,47 @@ def photos():
         dict: A dictionary containing a list with the information on the created file.
     """
     print('Querie to photos.sqlite.')
+    osv = ''
     with open('./db/data_ark.plist', 'rb') as fp:
         plist_data = plistlib.load(fp)
-        osv = plist_data['-DarkProductVersion'].split('.')[0]
+        if '-DarkProductVersion' in plist_data.keys():
+            osv = plist_data['-DarkProductVersion'].split('.')[0]
+    if osv == '':
+        with open('./db/LastBuildInfo.plist', 'rb') as fp:
+            plist_data = plistlib.load(fp)
+            if 'FullVersionString' in plist_data.keys():
+                osv = plist_data['FullVersionString'].split()[1].split('.')[0]
+    if osv != '':
+        # Accès au fichier de requêtes avec Pyinstaller
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        # Accès au fichier de requêtes normal
+        else:
+            base_path = os.path.abspath("ScottKjr3347/")
 
-    # Accès au fichier de requêtes avec Pyinstaller
-    if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
-    # Accès au fichier de requêtes normal
+        file_path = os.path.join(base_path, f'{osv}.txt')
+        with open(file_path) as req:
+            query = req.read()
+
+        try:
+            outils.extract_and_save(query, 'photos_sqlite.csv',
+                                    "./db/Photos.sqlite", "Photos SQLITE")
+            line_export = {
+                'PHOTOS.SQLITE :': [
+                    'Un fichier Excel nommé "photos_sqlite.csv" a été généré depuis la base de données Photos.SQLITE dans le dossier "Photos SQLITE".'
+                ]
+            }
+            print('photos_sqlite.csv created with success')
+        except Exception:
+            line_export = {
+                'PHOTOS.SQLITE :': [
+                    'le fichier "photos_sqlite.csv" n\'a pas pu être généré correctement.'
+                ]
+            }
     else:
-        base_path = os.path.abspath("ScottKjr3347/")
-
-    file_path = os.path.join(base_path, f'{osv}.txt')
-    with open(file_path) as req:
-        query = req.read()
-
-    try:
-        outils.extract_and_save(query, 'photos_sqlite.csv',
-                                "./db/Photos.sqlite", "Photos SQLITE")
         line_export = {
             'PHOTOS.SQLITE :': [
-                'Un fichier Excel nommé "photos_sqlite.csv" a été généré depuis la base de données Photos.SQLITE dans le dossier "Photos SQLITE".'
-            ]
-        }
-        print('photos_sqlite.csv created with success')
-    except Exception:
-        line_export = {
-            'PHOTOS.SQLITE :': [
-                'le fichier "photos_sqlite.csv" n\'a pas pu être généré correctement.'
+                'La fonction photo() n\'a pas réussi à récupérer la version d\'iOS et ne peut donc pas traiter la base de données photos.sqlite'
             ]
         }
     return line_export
@@ -515,7 +537,7 @@ def instagram():
         if 'last-logged-in-account-dict' in plist_data.keys():
             if 'username' in plist_data['last-logged-in-account-dict'] and 'profilePictureURLString' in plist_data['last-logged-in-account-dict']:
                 line_export['APPLICATION INSTAGRAM : '].append('Dernier utilisateur qui s\'est connecté : ' +
-                                                               plist_data['last-logged-in-account-dict']['username'] + '(' + plist_data['last-logged-in-account-dict']['profilePictureURLString'] + ')')
+                                                               plist_data['last-logged-in-account-dict']['username'] + ' (' + plist_data['last-logged-in-account-dict']['profilePictureURLString'] + ')')
     return line_export
 
 
