@@ -18,3 +18,4 @@ main.spec
 main2.py
 /.venv/*
 /__pycache__/*
+logs.txt

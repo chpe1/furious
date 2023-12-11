@@ -14,7 +14,7 @@ print("""
 FORENSIC UTILITY FOR RAPID INFORMATION ON UNDECODED SYSTEMS
 @created by JN for LION 59
 @Licence MIT
-version : 1.1.0
+version : 1.2.1
 """
       )
 
@@ -44,7 +44,7 @@ dict_unpath = {
     'activation_records/activation_record.plist': apple.activation_record,
     'arroyo/arroyo.db': None,
     'cachecontroller/cache_controller.db': None,
-    '/DocObjects/primary.docobjects': None,
+    'DocObjects/primary.docobjects': None,
     'Documents/user.db': apple.waze,
     'Library/Preferences/com.burbn.instagram.plist': apple.instagram,
     '.obliterated': apple.obliterated
@@ -102,10 +102,11 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                     # Si function_to_execute est différent de None, on execute la fonction adéquate
                     if function_to_execute:
                         try:
-                            lines_dict.append(function_to_execute())
+                            return_execution_func = function_to_execute()
+                            lines_dict.append(return_execution_func)
                             message_log = f'{
                                 function_to_execute} executed with success.'
-                            if function_to_execute():
+                            if return_execution_func:
                                 message_log += ' => Data'
                             else:
                                 message_log += ' => No Data'

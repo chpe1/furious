@@ -319,12 +319,23 @@ def snapchat(zip_ref):
 
     if len(associated_snap_accounts) > 0:
         for ancien_compte, horodatage in associated_snap_accounts.items():
+            try:
+                connexion = sqlite3.connect("./db/primary.docobjects")
+                cursor = connexion.cursor()
+                cursor.execute(
+                    "SELECT username FROM index_snapchatterusername as index_s INNER JOIN snapchatter as sn ON sn.rowid = index_s.rowid WHERE userId = ?", (ancien_compte,))
+                resultat = cursor.fetchone()
+                username = ' (' + str(resultat[0]) + ') '
+                connexion.close()
+            except:
+                username = ' '
+
             if len(horodatage) > 1:
                 line_export_snapchat['SNAPCHAT :'].append(
-                    ancien_compte + ' contient des fichiers horodatés du : ' + min(horodatage).strftime('%d-%m-%Y à %H:%M:%S') + ' au ' + max(horodatage).strftime('%d-%m-%Y à %H:%M:%S'))
+                    ancien_compte + username + 'contient des fichiers horodatés du : ' + min(horodatage).strftime('%d-%m-%Y à %H:%M:%S') + ' au ' + max(horodatage).strftime('%d-%m-%Y à %H:%M:%S'))
             else:
                 line_export_snapchat['SNAPCHAT :'].append(
-                    ancien_compte + ' contient des fichiers horodatés du : ' + str(next(iter(horodatage))))
+                    ancien_compte + username + ' contient des fichiers horodatés du : ' + str(next(iter(horodatage))))
     else:
         line_export_snapchat['SNAPCHAT :'].append(
             'Pas d\'historique de comptes trouvés')
