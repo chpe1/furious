@@ -33,19 +33,17 @@ Thanks for your comeback report.
 This script uses https://github.com/ScottKjr3347/iOS_Local_PL_Photos.sqlite_Queries to work with the photos.sqlite database.
 You need the biplist library to work with plist files
 
-Ce projet open-source utilise le script APOLLO sous licence "BSD-like with acknowledgment clause." Vous trouverez ci-dessous la licence du script APOLLO :
+This open-source project uses the APOLLO script under the "BSD-like with acknowledgment clause." license. You can find the APOLLO script license below:
 
 LICENSE 1 ("BSD-like with acknowledgment)
 Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restri
+
 1. Redistributions of source code must retain the above copyright notice, disclaimer, and this list of conditions.
 2. Redistributions in binary form must reproduce the above copyright notice, disclaimer, and this list of conditions in the documentation and/or other materials provided with the distribution.
 3. All advertising, training, and documentation materials mentioning features or use of this software must display the following acknowledgment. Character-limited social media may abbreviate this acknowledgment to include author and APOLLO name ie: "This new feature brought to you by @iamevltwin's APOLLO". Please make an effort credit the appropriate authors on specific APOLLO modules. The spirit of this clause is to give public acknowledgment to researchers where credit is due.
-This product includes software developed by Sarah Edwards (Station X Labs, LLC, @iamevltwin, mac4n6.com) and other contributors as part of APOLLO (Apple Pattern of Life Lazy 
-Output'er). 
-Le script APOLLO est développé par Sarah Edwards (Station X Labs, LLC, 
-@iamevltwin, mac4n6.com). Nous reconnaissons et respectons les droits de l'auteur 
-de ce script, conformément à la licence APOLLO. Merci à Sarah Edwards et aux 
-autres contributeurs d'APOLLO pour leur travail précieux.
+   This product includes software developed by Sarah Edwards (Station X Labs, LLC, @iamevltwin, mac4n6.com) and other contributors as part of APOLLO (Apple Pattern of Life Lazy
+   Output'er).
+   The APOLLO script is developed by Sarah Edwards (Station X Labs, LLC, @iamevltwin, mac4n6.com). We acknowledge and respect the copyright of this script of this script, in accordance with the APOLLO license. Thanks to Sarah Edwards and other APOLLO contributors for their valuable work.
 
 ### Installation
 

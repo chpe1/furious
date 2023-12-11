@@ -23,6 +23,8 @@ db_dir = "./db/"
 dcim_dir = "./DCIM/"
 thumb_dir = "./thumb/"
 lines_dict = []
+logs = []
+message_log = ''
 
 dict_unpath = {
     'Preferences/com.apple.commcenter.plist': apple.commcenter,
@@ -82,26 +84,41 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                     try:
                         # On extrait le fichier
                         zip_ref.extract(file_in_zip, path=db_dir)
-                        print(
-                            f'File extraction "{file_to_extract}" ... success')
+                        message_log = f'File extraction "{
+                            file_to_extract}" ... success'
+                        print(message_log)
+                        logs.append(message_log)
                         # Et on le rapatrie à la racine de '/db'
                         outils.move_to_root(db_dir, file_in_zip)
                     except WindowsError:
-                        print(
-                            'Impossible de déplacer le fichier à la racine, il existe déjà.')
+                        message_log = 'Impossible to move file to root, it already exists.'
+                        print(message_log)
+                        logs.append(message_log)
                     except Exception as e:
-                        print(
-                            f'File extraction "{file_to_extract}" ... error : {e}')
+                        message_log = f'File extraction "{
+                            file_to_extract}" ... error : {e}'
+                        print(message_log)
+                        logs.append(message_log)
                     # Si function_to_execute est différent de None, on execute la fonction adéquate
                     if function_to_execute:
                         try:
                             lines_dict.append(function_to_execute())
+                            message_log = f'{
+                                function_to_execute} executed with success.'
+                            if function_to_execute():
+                                message_log += ' => Data'
+                            else:
+                                message_log += ' => No Data'
+                            logs.append(message_log)
                         except Exception as e:
-                            print(
-                                f'An error occurred when executing the function {function_to_execute} : {e}')
+                            message_log = f'An error occurred when executing the function {
+                                function_to_execute} : {e}'
+                            print(message_log)
+                            logs.append(message_log)
             else:
                 # Gestion du .obliterated qu'on n'a pas besoin d'extraire
                 function_to_execute(zip_ref, file_in_zip)
+                logs.append(f'{function_to_execute} executed with success.')
 
 
 def extract_gallery(zip_ref, dcim_dir):
@@ -119,7 +136,9 @@ def extract_gallery(zip_ref, dcim_dir):
     It then offers to download these files and moves them to the target directory. The path of each extracted file is added to the 'liste_photos' list.
     """
     liste_photos = []
-    print('Gallery content browsing...')
+    message_log = 'Gallery content browsing...'
+    print(message_log)
+    logs.append(message_log)
     # On parcourt la liste des fichiers du zip et on ajoute à la liste uniquement les fichiers qui se trouvent dans le répertoire DCIM.
     for file_in_zip in zip_ref.namelist():
         if '/Media/DCIM/' in file_in_zip and not file_in_zip.endswith('/') and not file_in_zip.endswith('.bin'):
@@ -133,6 +152,7 @@ def extract_gallery(zip_ref, dcim_dir):
         if download != 'n':
             print(
                 "Gallery download...\nThis operation can last for a long time. \nPlease wait...")
+            logs.append('Gallery download...')
             # On utilise la liste pour ne pas à avoir à reparcourir tous les fichiers du zip.
             for photo in liste_photos:
                 parent = os.path.dirname(os.path.dirname(photo))
@@ -142,13 +162,19 @@ def extract_gallery(zip_ref, dcim_dir):
                 try:
                     zip_ref.extract(photo, path=dcim_dir)
                 except FileExistsError:
-                    print(
-                        f'Erreur lors de l\'extraction de {photo} : le fichier existe déjà')
+                    message_log = f'Error extracting {
+                        photo}: file already exists'
+                    print(message_log)
+                    logs.append(message_log)
                 except Exception as e:
-                    print(f'Erreur lors de l\'extraction de {photo} : {e}')
+                    message_log = f'Error extracting {photo} : {e}'
+                    print(message_log)
+                    logs.append(message_log)
                 # Et on le rapatrie à la racine de '/dcim'
                 outils.move_to_dir(dcim_dir, destination_path, photo)
-            print('Gallery download completed')
+            message_log = 'Gallery download completed'
+            print(message_log)
+            logs.append(message_log)
     return liste_photos
 
 
@@ -164,6 +190,7 @@ def extract_thumbnails(zip_ref, liste_photos):
         None
     """
     print('Search thumbnails... Please wait')
+    logs.append("Search thumbnails...")
     thumbnails = []
     medias_manquants = []
 
@@ -182,14 +209,19 @@ def extract_thumbnails(zip_ref, liste_photos):
     if len(medias_manquants) > 0:
         download = input(
             f'There are  {len(medias_manquants)} media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory. Would you like to download them? (Y, n): ')
+        logs.append(f'There are  {len(
+            medias_manquants)} media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
     else:
         download = 'n'
-        print(str(len(thumbnails)) +
-              ' thumbnails detected ! Originals are all in the DCIM folder.')
+        message_log = str(
+            len(thumbnails)) + ' thumbnails detected ! Originals are all in the DCIM folder.'
+        print(message_log)
+        logs.append(message_log)
 
     if download != 'n':
-        print(
-            "Thumbnails download...\nThis operation can last for a long time. \nPlease wait...")
+        message_log = "Thumbnails download...\nThis operation can last for a long time. \nPlease wait..."
+        print(message_log)
+        logs.append(message_log)
         for media in medias_manquants:
             parent = os.path.dirname(os.path.dirname(media))
             original_file_path = media.replace(
@@ -228,9 +260,13 @@ def extract_zip(my_zip):
             liste_photos = extract_gallery(zip_ref, dcim_dir)
             extract_thumbnails(zip_ref, liste_photos)
     except FileExistsError:
-        print(f'Erreur lors de l\'extraction du fichier : le fichier existe déjà.')
+        message_log = f'Erreur lors de l\'extraction du fichier : le fichier existe déjà.'
+        print(message_log)
+        logs.append(message_log)
     except Exception as e:
-        print(f'Erreur lors de l\'extraction du fichier : {e}')
+        message_log = f'Erreur lors de l\'extraction du fichier : {e}'
+        print(message_log)
+        logs.append(message_log)
 
 
 if __name__ == "__main__":
@@ -247,5 +283,9 @@ if __name__ == "__main__":
 
     # Ecriture du fichier standard
     outils.write_file(lines_dict)
+
+    # Ecriture du fichier de logs
+    with open('logs.txt', "w", encoding="utf-8") as log_file:
+        log_file.writelines('\n'.join(logs))
 
     input("Program complete. Press [ENTER] to exit the program... ")
