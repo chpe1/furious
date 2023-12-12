@@ -14,7 +14,7 @@ print("""
 FORENSIC UTILITY FOR RAPID INFORMATION ON UNDECODED SYSTEMS
 @created by JN for LION 59
 @Licence MIT
-version : 1.2.1
+version : 1.2.2
 """
       )
 
@@ -118,7 +118,7 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                             logs.append(message_log)
             else:
                 # Gestion du .obliterated qu'on n'a pas besoin d'extraire
-                function_to_execute(zip_ref, file_in_zip)
+                lines_dict.append(function_to_execute(zip_ref, file_in_zip))
                 logs.append(f'{function_to_execute} executed with success.')
 
 
