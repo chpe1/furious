@@ -96,6 +96,9 @@ def extract_and_save(query, csv_filename, database, output_folder):
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(column_names)
             csv_writer.writerows(data)
+        return True
+    else:
+        return False
 
 
 def move_to_root(dir_target, file_to_move):
@@ -130,8 +133,6 @@ def move_to_dir(dir, dir_path, file_to_move):
     """
     extracted_file_path = os.path.join(
         dir, file_to_move.lstrip('/'))
-    # new_extracted_file_path = os.path.join(
-    #     dir_path, os.path.basename(file_to_move))
     new_extracted_file_path = dir_path + '/' + os.path.basename(file_to_move)
     if not os.path.exists(dir_path):
         os.makedirs(dir_path, exist_ok=True)

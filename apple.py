@@ -276,13 +276,21 @@ def waze():
     ]
 
     for query, csv_filename in queries:
-        outils.extract_and_save(query, csv_filename, "./db/user.db", 'Waze')
+        result = outils.extract_and_save(
+            query, csv_filename, "./db/user.db", 'Waze')
 
-    line_export = {
-        'APPLICATION WAZE :': [
-            'Si cette application comporte des données, elles ont été exportée en 3 fichiers : places.csv, recents.csv et favorites.csv\nCes fichiers sont placés dans le dossier "Waze"\nSi ce dossier n\'existe pas, c\'est qu\'il n\'y a pas de données retournées par les requêtes automatisées.',
-        ]
-    }
+    if result:
+        line_export = {
+            'APPLICATION WAZE :': [
+                'Les données de cette application ont été exportées en 3 fichiers : places.csv, recents.csv et favorites.csv\nCes fichiers sont placés dans le dossier "Waze"',
+            ]
+        }
+    else:
+        line_export = {
+            'APPLICATION WAZE :': [
+                'Il n\'y a pas de données retournées par les requêtes pour l\'application WAZE',
+            ]
+        }
     return line_export
 
 
@@ -319,15 +327,18 @@ def snapchat(zip_ref):
 
     if len(associated_snap_accounts) > 0:
         for ancien_compte, horodatage in associated_snap_accounts.items():
-            try:
-                connexion = sqlite3.connect("./db/primary.docobjects")
-                cursor = connexion.cursor()
-                cursor.execute(
-                    "SELECT username FROM index_snapchatterusername as index_s INNER JOIN snapchatter as sn ON sn.rowid = index_s.rowid WHERE userId = ?", (ancien_compte,))
-                resultat = cursor.fetchone()
-                username = ' (' + str(resultat[0]) + ') '
-                connexion.close()
-            except:
+            if os.path.exists('./db/primary.docobjects'):
+                try:
+                    connexion = sqlite3.connect("./db/primary.docobjects")
+                    cursor = connexion.cursor()
+                    cursor.execute(
+                        "SELECT username FROM index_snapchatterusername as index_s INNER JOIN snapchatter as sn ON sn.rowid = index_s.rowid WHERE userId = ?", (ancien_compte,))
+                    resultat = cursor.fetchone()
+                    username = ' (' + str(resultat[0]) + ') '
+                    connexion.close()
+                except:
+                    username = ' '
+            else:
                 username = ' '
 
             if len(horodatage) > 1:
@@ -463,14 +474,22 @@ def photos():
             query = req.read()
 
         try:
-            outils.extract_and_save(query, 'photos_sqlite.csv',
-                                    "./db/Photos.sqlite", "Photos SQLITE")
-            line_export = {
-                'PHOTOS.SQLITE :': [
-                    'Un fichier Excel nommé "photos_sqlite.csv" a été généré depuis la base de données Photos.SQLITE dans le dossier "Photos SQLITE".'
-                ]
-            }
-            print('photos_sqlite.csv created with success')
+            result = outils.extract_and_save(query, 'photos_sqlite.csv',
+                                             "./db/Photos.sqlite", "Photos SQLITE")
+            if result:
+                line_export = {
+                    'PHOTOS.SQLITE :': [
+                        'Un fichier Excel nommé "photos_sqlite.csv" a été généré depuis la base de données Photos.sqlite dans le dossier "Photos SQLITE".'
+                    ]
+                }
+                print('photos_sqlite.csv created with success')
+            else:
+                line_export = {
+                    'PHOTOS.SQLITE :': [
+                        'Photos.sqlite est vide'
+                    ]
+                }
+                print('Photos.sqlite est vide')
         except Exception:
             line_export = {
                 'PHOTOS.SQLITE :': [
@@ -516,14 +535,30 @@ def healthdb_secure():
         ('SELECT rowid, device_id, origin_product_type, source_id from data_provenances ORDER by device_id', "devices.csv"),
     ]
 
+    result_query = []
+
     for query, csv_filename in queries:
-        outils.extract_and_save(query, csv_filename,
-                                "./db/healthdb_secure.sqlite", 'Healthdb_Secure')
+        result_query.append(outils.extract_and_save(query, csv_filename,
+                                                    "./db/healthdb_secure.sqlite", 'Healthdb_Secure'))
+
+    messages = []
+    if result_query[0]:
+        messages.append(
+            'La liste des fuseaux horaires synchronisés avec le compte icloud a été exportée dans le fichier fuseaux_horaires.csv')
+    else:
+        messages.append(
+            'Aucun fuseaux horaires synchronisés avec le compte icloud n\'a été trouvé')
+    if result_query[1]:
+        messages.append(
+            'La liste des appareils associés au compte iCloud de l\'utilisateur a été exportée dans le fichier devices.csv')
+    else:
+        messages.append(
+            'Aucun appareils associés au compte icloud de l\'utilisateur n\'a été trouvé')
 
     line_export = {
         'DONNEES DE SANTE (HEALTHDB_SECURE) :': [
-            'La liste des fuseaux horaires synchronisés avec le compte icloud a été exportée dans le fichier fuseaux_horaires.csv',
-            'La liste des appareils associés au compte iCloud de l\'utilisateur a été exportée dans le fichier devices.csv'
+            messages[0],
+            messages[1]
         ]
     }
     return line_export
@@ -593,11 +628,115 @@ def sms():
 	LEFT OUTER JOIN ATTACHMENT ON MESSAGE_ATTACHMENT_JOIN.ATTACHMENT_ID = ATTACHMENT.ROWID
 	LEFT OUTER JOIN HANDLE ON MESSAGE.HANDLE_ID = HANDLE.ROWID
     """
-    outils.extract_and_save(query, 'sms.csv',
-                            "./db/sms.db", 'SMS')
-    line_export = {
-        'SMS :': [
-            'Les SMS ont été exportés dans le dossier SMS (fichier sms.csv)',
-        ]
-    }
+    result = outils.extract_and_save(query, 'sms.csv',
+                                     "./db/sms.db", 'SMS')
+
+    if result:
+        line_export = {
+            'SMS :': [
+                'Les SMS ont été exportés dans le dossier SMS (fichier sms.csv)',
+            ]
+        }
+    else:
+        line_export = {
+            'SMS :': [
+                'Aucun sms n\'a été trouvé dans la base de données sms.db',
+            ]
+        }
+
+    return line_export
+
+
+def safari():
+    """
+    Query the history.db database for extract history internet navigation
+    Generates 1 csv
+    Use the APOLLO Script : https://github.com/mac4n6/APOLLO/blob/master/modules/safari_history.txt
+
+    Returns:
+        dict: A dictionary containing a list with the information on the created files.
+    """
+    query = """ 
+    SELECT
+    DATETIME(HISTORY_VISITS.VISIT_TIME+978307200,'UNIXEPOCH') AS "VISIT TIME",
+    HISTORY_ITEMS.URL AS "URL",
+    HISTORY_ITEMS.VISIT_COUNT AS "VISIT COUNT",
+    HISTORY_VISITS.TITLE AS "TITLE",
+    CASE HISTORY_VISITS.ORIGIN
+        WHEN 1 THEN "ICLOUD SYNCED DEVICE"
+        WHEN 0 THEN "VISITED FROM THIS DEVICE"
+        ELSE HISTORY_VISITS.ORIGIN
+    END "ICLOUD SYNC",
+    HISTORY_VISITS.LOAD_SUCCESSFUL AS "LOAD SUCCESSFUL",
+    HISTORY_VISITS.id AS "VISIT ID",
+    HISTORY_VISITS.REDIRECT_SOURCE AS "REDIRECT SOURCE",
+    HISTORY_VISITS.REDIRECT_DESTINATION AS "REDIRECT DESTINATION",
+    HISTORY_VISITS.ID AS "HISTORY ITEM ID"
+    FROM HISTORY_ITEMS
+    LEFT OUTER JOIN HISTORY_VISITS ON HISTORY_ITEMS.ID == HISTORY_VISITS.HISTORY_ITEM
+    """
+
+    result = outils.extract_and_save(query, 'internet_history.csv',
+                                     "./db/history.db", 'SAFARI')
+
+    if result:
+        line_export = {
+            'SAFARI :': [
+                'L\'historique internet du navigateur SAFARI a été exporté dans le dossier SAFARI (fichier internet_history.csv)',
+            ]
+        }
+    else:
+        line_export = {
+            'SAFARI :': [
+                'Aucun historique internet n\'a été trouvé dans la base de données History.db',
+            ]
+        }
+    return line_export
+
+
+def notes():
+    """
+    Query the notes.db database for extract apple notes
+    Generates 1 csv
+
+    Returns:
+        dict: A dictionary containing a list with the information on the created files.
+    """
+    query = """ 
+    SELECT
+    ZNOTE.Z_PK,
+    DATETIME(ZNOTE.ZCREATIONDATE+978307200,'UNIXEPOCH','LOCALTIME') AS "CREATION DATE",
+    DATETIME(ZNOTE.ZMODIFICATIONDATE+978307200,'UNIXEPOCH','LOCALTIME') AS "MODIFICATION DATE",
+    ZNOTE.ZDELETEDFLAG,
+    ZNOTE.ZSUMMARY,
+    ZNOTE.ZTITLE,
+    ZNOTE.ZAUTHOR,
+    ZNOTE.ZGUID,
+    ZACCOUNT.ZNAME AS "ACCOUNT NAME",
+    ZNOTEBODY.ZCONTENT,
+    ZNOTEATTACHMENT.ZCONTENTID,
+    ZNOTEATTACHMENT.ZFILENAME
+    FROM ZNOTE
+    LEFT JOIN ZSTORE ON ZNOTE.ZSTORE == ZSTORE.Z_PK
+    LEFT JOIN ZACCOUNT ON ZSTORE.ZACCOUNT == ZACCOUNT.Z_PK
+    LEFT JOIN ZNOTEBODY ON ZNOTE.ZBODY == ZNOTEBODY.Z_PK
+    LEFT JOIN ZNOTEATTACHMENT ON ZNOTE.Z_PK == ZNOTEATTACHMENT.ZNOTE
+    ORDER BY "CREATION DATE"
+    """
+
+    result = outils.extract_and_save(query, 'notes.csv',
+                                     "./db/notes.sqlite", 'NOTES')
+
+    if result:
+        line_export = {
+            'NOTES :': [
+                'Le contenu de la base de données "notes.db" été exporté dans le dossier NOTES (fichier notes.csv)',
+            ]
+        }
+    else:
+        line_export = {
+            'NOTES :': [
+                'Aucune note n\'a été trouvée dans la base de données notes.sqlite',
+            ]
+        }
     return line_export

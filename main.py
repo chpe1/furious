@@ -14,7 +14,7 @@ print("""
 FORENSIC UTILITY FOR RAPID INFORMATION ON UNDECODED SYSTEMS
 @created by JN for LION 59
 @Licence MIT
-version : 1.2.2
+version : 1.2.3
 """
       )
 
@@ -35,7 +35,7 @@ dict_unpath = {
     'Preferences/com.apple.aggregated.plist': apple.aggregated,
     'SystemConfiguration/NetworkInterfaces.plist': apple.networkinterface,
     'Accounts/Accounts3.sqlite': apple.accounts,
-    'Notes/notes.sqlite': None,
+    'Notes/notes.sqlite': apple.notes,
     'Lockdown/data_ark.plist': apple.data_ark,
     'Health/healthdb_secure.sqlite': apple.healthdb_secure,
     'Passes/passes23.sqlite': None,
@@ -47,7 +47,8 @@ dict_unpath = {
     'DocObjects/primary.docobjects': None,
     'Documents/user.db': apple.waze,
     'Library/Preferences/com.burbn.instagram.plist': apple.instagram,
-    '.obliterated': apple.obliterated
+    '.obliterated': apple.obliterated,
+    'Safari/History.db': apple.safari
 }
 
 # Crée le répertoire de sortie
@@ -261,7 +262,7 @@ def extract_zip(my_zip):
             liste_photos = extract_gallery(zip_ref, dcim_dir)
             extract_thumbnails(zip_ref, liste_photos)
     except FileExistsError:
-        message_log = f'Erreur lors de l\'extraction du fichier : le fichier existe déjà.'
+        message_log = 'Erreur lors de l\'extraction du fichier : le fichier existe déjà.'
         print(message_log)
         logs.append(message_log)
     except Exception as e:
