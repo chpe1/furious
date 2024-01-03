@@ -271,8 +271,8 @@ def waze():
     """
     queries = [
         ("SELECT DATETIME(PLACES.created_time, 'UNIXEPOCH') AS \"Date UTC\", PLACES.name AS \"Nom\", PLACES.house AS \"N°\", PLACES.street AS \"rue\", PLACES.city AS \"Ville\", PLACES.state AS \"Etat\", PLACES.country AS \"Pays\", ROUND(PLACES.latitude, 6)/1000000 AS \"Latitude\", ROUND(PLACES.longitude, 6)/1000000 AS \"Longitude\" FROM PLACES", "places.csv"),
-        ("SELECT RECENTS.place_id, DATETIME(RECENTS.created_time, 'UNIXEPOCH') AS \"Date de Création UTC\", DATETIME(RECENTS.access_time, 'UNIXEPOCH') AS \"Date de Début d'utilisation UTC\", (RECENTS.access_time - RECENTS.created_time) as \"Utilisation différée en Secondes\", PLACES.name as \"Nom\", PLACES.house as \"N°\", places.street as \"rue\", PLACES.city as \"Ville\", PLACES.state as \"Etat\", PLACES.country as \"Pays\", DATETIME(PLACES.created_time, 'UNIXEPOCH') AS \"Date Création Places UTC\", round(PLACES.latitude, 6)/1000000 as \"Latitude\", ROUND(PLACES.longitude, 6)/1000000 as \"Longitude\" from RECENTS, PLACES where RECENTS.place_id = PLACES.id", "recents.csv"),
-        ("SELECT FAVORITES.place_id, DATETIME(FAVORITES.created_time, 'UNIXEPOCH') AS \"Date de Création UTC\", DATETIME(FAVORITES.modified_time, 'UNIXEPOCH') AS \"Date de modification UTC\", DATETIME(FAVORITES.access_time, 'UNIXEPOCH') AS \"Date d'accès UTC\", PLACES.name as \"Nom\", PLACES.house as \"N°\", places.street as \"rue\", PLACES.city as \"Ville\", PLACES.state as \"Etat\", PLACES.country as \"Pays\", round(PLACES.latitude, 6)/1000000 as \"Latitude\", ROUND(PLACES.longitude, 6)/1000000 as \"Longitude\" from FAVORITES, PLACES where FAVORITES.place_id = PLACES.id", "favorites.csv")
+        ("SELECT RECENTS.place_id, DATETIME(RECENTS.created_time, 'UNIXEPOCH') AS \"Date de Création UTC\", DATETIME(RECENTS.access_time, 'UNIXEPOCH') AS \"Date de dernière d'utilisation UTC\", PLACES.name as \"Nom\", PLACES.house as \"N°\", places.street as \"rue\", PLACES.city as \"Ville\", PLACES.state as \"Etat\", PLACES.country as \"Pays\", DATETIME(PLACES.created_time, 'UNIXEPOCH') AS \"Date Création Places UTC\", round(PLACES.latitude, 6)/1000000 as \"Latitude\", ROUND(PLACES.longitude, 6)/1000000 as \"Longitude\" FROM RECENTS, PLACES WHERE RECENTS.place_id = PLACES.id", "recents.csv"),
+        ("SELECT FAVORITES.place_id, DATETIME(FAVORITES.created_time, 'UNIXEPOCH') AS \"Date de Création UTC\", DATETIME(FAVORITES.modified_time, 'UNIXEPOCH') AS \"Date de modification UTC\", DATETIME(FAVORITES.access_time, 'UNIXEPOCH') AS \"Date d'accès UTC\", PLACES.name as \"Nom\", PLACES.house as \"N°\", places.street as \"rue\", PLACES.city as \"Ville\", PLACES.state as \"Etat\", PLACES.country as \"Pays\", round(PLACES.latitude, 6)/1000000 as \"Latitude\", ROUND(PLACES.longitude, 6)/1000000 as \"Longitude\" FROM FAVORITES, PLACES WHERE FAVORITES.place_id = PLACES.id", "favorites.csv")
     ]
 
     for query, csv_filename in queries:
@@ -677,7 +677,7 @@ def safari():
     """
 
     result = outils.extract_and_save(query, 'internet_history.csv',
-                                     "./db/history.db", 'SAFARI')
+                                     "./db/History.db", 'SAFARI')
 
     if result:
         line_export = {

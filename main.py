@@ -85,8 +85,7 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                     try:
                         # On extrait le fichier
                         zip_ref.extract(file_in_zip, path=db_dir)
-                        message_log = f'File extraction "{
-                            file_to_extract}" ... success'
+                        message_log = 'File extraction ' + file_to_extract + ' ... success'
                         print(message_log)
                         logs.append(message_log)
                         # Et on le rapatrie à la racine de '/db'
@@ -96,8 +95,7 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                         print(message_log)
                         logs.append(message_log)
                     except Exception as e:
-                        message_log = f'File extraction "{
-                            file_to_extract}" ... error : {e}'
+                        message_log = 'File extraction ' + file_to_extract + ' ... error : ' + e
                         print(message_log)
                         logs.append(message_log)
                     # Si function_to_execute est différent de None, on execute la fonction adéquate
@@ -105,16 +103,14 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                         try:
                             return_execution_func = function_to_execute()
                             lines_dict.append(return_execution_func)
-                            message_log = f'{
-                                function_to_execute} executed with success.'
+                            message_log = str(function_to_execute) + ' executed with success.'
                             if return_execution_func:
                                 message_log += ' => Data'
                             else:
                                 message_log += ' => No Data'
                             logs.append(message_log)
                         except Exception as e:
-                            message_log = f'An error occurred when executing the function {
-                                function_to_execute} : {e}'
+                            message_log = 'An error occurred when executing the function ' + str(function_to_execute) + ' : ' + e
                             print(message_log)
                             logs.append(message_log)
             else:
@@ -164,8 +160,7 @@ def extract_gallery(zip_ref, dcim_dir):
                 try:
                     zip_ref.extract(photo, path=dcim_dir)
                 except FileExistsError:
-                    message_log = f'Error extracting {
-                        photo}: file already exists'
+                    message_log = 'Error extracting ' + photo + ' : file already exists'
                     print(message_log)
                     logs.append(message_log)
                 except Exception as e:
@@ -211,8 +206,7 @@ def extract_thumbnails(zip_ref, liste_photos):
     if len(medias_manquants) > 0:
         download = input(
             f'There are  {len(medias_manquants)} media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory. Would you like to download them? (Y, n): ')
-        logs.append(f'There are  {len(
-            medias_manquants)} media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
+        logs.append('There are  ' + len(medias_manquants) + ' media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
     else:
         download = 'n'
         message_log = str(
