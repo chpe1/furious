@@ -656,7 +656,7 @@ def safari():
     Returns:
         dict: A dictionary containing a list with the information on the created files.
     """
-    query = """ 
+    query = """
     SELECT
     DATETIME(HISTORY_VISITS.VISIT_TIME+978307200,'UNIXEPOCH') AS "VISIT TIME",
     HISTORY_ITEMS.URL AS "URL",
@@ -687,9 +687,7 @@ def safari():
         }
     else:
         line_export = {
-            'SAFARI :': [
-                'Aucun historique internet n\'a été trouvé dans la base de données History.db',
-            ]
+            'SAFARI :': []
         }
     return line_export
 

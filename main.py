@@ -14,7 +14,7 @@ print("""
 FORENSIC UTILITY FOR RAPID INFORMATION ON UNDECODED SYSTEMS
 @created by JN for LION 59
 @Licence MIT
-version : 1.2.3
+version : 1.2.5
 """
       )
 

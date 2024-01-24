@@ -82,10 +82,15 @@ def extract_and_save(query, csv_filename, database, output_folder):
     """
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
-    cursor.execute(query)
-    data = cursor.fetchall()
-    column_names = [col[0] for col in cursor.description]
-    conn.close()
+    try:
+        cursor.execute(query)
+        data = cursor.fetchall()
+        column_names = [col[0] for col in cursor.description]
+        conn.close()
+    except Exception as e:
+        print(
+            f"Erreur lors de l'exécution de la requête concernant {output_folder} : {e}")
+        data = ""
 
     if len(data) > 1:
         if not os.path.exists(output_folder):
