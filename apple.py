@@ -587,6 +587,39 @@ def instagram():
     return line_export
 
 
+def pass23():
+    query = """
+    SELECT
+    DATETIME(transaction_date + 978307200, 'UNIXEPOCH', 'localtime') as "Date-fr-Transac",
+    merchant_name as "marchand",
+    (amount /100) as "Mtt",
+    currency_code as "Devise",
+    locality as "Ville",
+    administrative_area as "Secteur",
+    af as "zone",
+    location_latitude as "lat",
+    location_longitude as "long",
+    location_horizontal_accuracy as "precision"
+    FROM "main"."payment_transaction"
+    """
+    result = outils.extract_and_save(query, 'passes23.csv',
+                                     "./db/passes23.sqlite", 'APPLE WALLET')
+    if result:
+        line_export = {
+            'APPLE WALLET :': [
+                'Des paiements ont été trouvées dans l\'application APPLE WALLET (fichier passes23.csv)',
+            ]
+        }
+    else:
+        line_export = {
+            'APPLE WALLET :': [
+                'Aucun paiement n\'a été trouvée dans la base de données passes23.sqlite',
+            ]
+        }
+
+    return line_export
+
+
 def sms():
     """
     Query the sms.db database for extract SMS

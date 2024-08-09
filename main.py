@@ -38,7 +38,7 @@ dict_unpath = {
     'Notes/notes.sqlite': apple.notes,
     'Lockdown/data_ark.plist': apple.data_ark,
     'Health/healthdb_secure.sqlite': apple.healthdb_secure,
-    'Passes/passes23.sqlite': None,
+    'Passes/passes23.sqlite': apple.pass23,
     'PhotoData/Photos.sqlite': apple.photos,
     'SMS/sms.db': apple.sms,
     'activation_records/activation_record.plist': apple.activation_record,
