@@ -14,7 +14,7 @@ print("""
 FORENSIC UTILITY FOR RAPID INFORMATION ON UNDECODED SYSTEMS
 @created by JN for LION 59
 @Licence MIT
-version : 1.2.5
+version : 1.2.6
 """
       )
 
@@ -206,7 +206,7 @@ def extract_thumbnails(zip_ref, liste_photos):
     if len(medias_manquants) > 0:
         download = input(
             f'There are  {len(medias_manquants)} media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory. Would you like to download them? (Y, n): ')
-        logs.append('There are  ' + len(medias_manquants) + ' media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
+        logs.append('There are  ' + str(len(medias_manquants)) + ' media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
     else:
         download = 'n'
         message_log = str(
