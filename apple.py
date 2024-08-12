@@ -450,7 +450,7 @@ def photos():
     Returns:
         dict: A dictionary containing a list with the information on the created file.
     """
-    print('Querie to photos.sqlite.')
+    print('Exécution de la requête sur photos.sqlite.')
     osv = ''
     with open('./db/data_ark.plist', 'rb') as fp:
         plist_data = plistlib.load(fp)
@@ -482,7 +482,7 @@ def photos():
                         'Un fichier Excel nommé "photos_sqlite.csv" a été généré depuis la base de données Photos.sqlite dans le dossier "Photos SQLITE".'
                     ]
                 }
-                print('photos_sqlite.csv created with success')
+                print('photos_sqlite.csv a été créé avec succès')
             else:
                 line_export = {
                     'PHOTOS.SQLITE :': [

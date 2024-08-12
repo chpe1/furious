@@ -86,17 +86,17 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                     try:
                         # On extrait le fichier
                         zip_ref.extract(file_in_zip, path=db_dir)
-                        message_log = 'File extraction ' + file_to_extract + ' ... success'
+                        message_log = 'Extraction du fichier ' + file_to_extract + ' ... succès'
                         print(message_log)
                         logs.append(message_log)
                         # Et on le rapatrie à la racine de '/db'
                         outils.move_to_root(db_dir, file_in_zip)
                     except WindowsError:
-                        message_log = 'Impossible to move file to root, it already exists.'
+                        message_log = 'Impossible de bouger ce fichier à la racine, il existe déjà.'
                         print(message_log)
                         logs.append(message_log)
                     except Exception as e:
-                        message_log = 'File extraction ' + file_to_extract + ' ... error : ' + e
+                        message_log = 'Extraction du fichier ' + file_to_extract + ' ... erreur : ' + e
                         print(message_log)
                         logs.append(message_log)
                     # Si function_to_execute est différent de None, on execute la fonction adéquate
@@ -105,14 +105,14 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                             return_execution_func = function_to_execute()
                             lines_dict.append(return_execution_func)
                             message_log = str(
-                                function_to_execute) + ' executed with success.'
+                                function_to_execute) + ' executé avec succès.'
                             if return_execution_func:
                                 message_log += ' => Data'
                             else:
                                 message_log += ' => No Data'
                             logs.append(message_log)
                         except Exception as e:
-                            message_log = 'An error occurred when executing the function ' + \
+                            message_log = 'Une erreur s\'est produite lors de l\'exécution de la fonction ' + \
                                 str(function_to_execute) + ' : ' + e
                             print(message_log)
                             logs.append(message_log)
@@ -133,7 +133,7 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                     lines_dict.append(
                         function_to_execute(zip_ref, file_in_zip))
                     logs.append(
-                        f'{function_to_execute} executed with success.')
+                        f'{function_to_execute} executé avec succès.')
 
 
 def extract_gallery(zip_ref, dcim_dir):
@@ -151,7 +151,7 @@ def extract_gallery(zip_ref, dcim_dir):
     It then offers to download these files and moves them to the target directory. The path of each extracted file is added to the 'liste_photos' list.
     """
     liste_photos = []
-    message_log = 'Gallery content browsing...'
+    message_log = 'Parcours du contenu de la galerie, veuillez patienter ...'
     print(message_log)
     logs.append(message_log)
     # On parcourt la liste des fichiers du zip et on ajoute à la liste uniquement les fichiers qui se trouvent dans le répertoire DCIM.
@@ -162,12 +162,12 @@ def extract_gallery(zip_ref, dcim_dir):
     # S'il y a des photos, on propose de les télécharger.
     if len(liste_photos) > 0:
         download = input(
-            f'There are {len(liste_photos)} medias in this phone\'s gallery. Would you like to download them? (Y, n): ')
+            f'Il y a {len(liste_photos)} medias dans la galerie de ce téléphone. Est-ce que tu veux les télécharger ? (Y, n): ')
 
         if download != 'n':
             print(
-                "Gallery download...\nThis operation can last for a long time. \nPlease wait...")
-            logs.append('Gallery download...')
+                "Téléchargement de la galerie...\nCette opération peut prendre un moment. \nPrière de patienter...")
+            logs.append('Téléchargement de la galerie...')
             # On utilise la liste pour ne pas à avoir à reparcourir tous les fichiers du zip.
             for photo in liste_photos:
                 parent = os.path.dirname(os.path.dirname(photo))
@@ -177,16 +177,16 @@ def extract_gallery(zip_ref, dcim_dir):
                 try:
                     zip_ref.extract(photo, path=dcim_dir)
                 except FileExistsError:
-                    message_log = 'Error extracting ' + photo + ' : file already exists'
+                    message_log = 'Erreur d\'extraction ' + photo + ' : Le fichier existe déjà'
                     print(message_log)
                     logs.append(message_log)
                 except Exception as e:
-                    message_log = f'Error extracting {photo} : {e}'
+                    message_log = f'Erreur d\'extraction : {photo} : {e}'
                     print(message_log)
                     logs.append(message_log)
                 # Et on le rapatrie à la racine de '/dcim'
                 outils.move_to_dir(dcim_dir, destination_path, photo)
-            message_log = 'Gallery download completed'
+            message_log = 'Téléchargement de la galerie terminé avec succès'
             print(message_log)
             logs.append(message_log)
     return liste_photos
@@ -203,8 +203,8 @@ def extract_thumbnails(zip_ref, liste_photos):
     Returns:
         None
     """
-    print('Search thumbnails... Please wait')
-    logs.append("Search thumbnails...")
+    print('Recherche des miniatures... Prière de patienter')
+    logs.append("Recherche des miniatures...")
     thumbnails = []
     medias_manquants = []
 
@@ -222,18 +222,18 @@ def extract_thumbnails(zip_ref, liste_photos):
             medias_manquants.append(dossier)
     if len(medias_manquants) > 0:
         download = input(
-            f'There are  {len(medias_manquants)} media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory. Would you like to download them? (Y, n): ')
+            f'Il y a {len(medias_manquants)} miniatures de médias qui ne sont plus dans la galerie du téléphone mais qui sont encore présents dans le répertoire /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/. Est-ce que tu veux les télécharger ? (Y, n): ')
         logs.append('There are  ' + str(len(medias_manquants)) +
-                    ' media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
+                    ' miniatures de médias qui ne sont plus présent dans la galerie de ce téléphone mais qui sont encore présents dans le répertoire /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/.')
     else:
         download = 'n'
         message_log = str(
-            len(thumbnails)) + ' thumbnails detected ! Originals are all in the DCIM folder.'
+            len(thumbnails)) + ' miniatures detectés ! Les originaux sont tous dans le dossier DCIM.'
         print(message_log)
         logs.append(message_log)
 
     if download != 'n':
-        message_log = "Thumbnails download...\nThis operation can last for a long time. \nPlease wait..."
+        message_log = "Téléchargement des miniatures...\nCette opération peut être longue. \nPrière de patienter..."
         print(message_log)
         logs.append(message_log)
         for media in medias_manquants:
@@ -259,7 +259,7 @@ def extract_zip(my_zip):
 
     This function opens the zip archive and executes the functions extract_file_known_path, extract_unknown_path_file. It handles the specific cases of .obliterated and Snapchat account history whose artifacts don't need to be extracted. Finally, it executes the extract_gallery and extract_thumbnails functions.
     """
-    print('Open the zipfile. Please wait...')
+    print('Ouverture du fichier zip. Prière de patienter ...')
     try:
         with zipfile.ZipFile(my_zip, 'r') as zip_ref:
 
@@ -284,9 +284,27 @@ def extract_zip(my_zip):
 
 
 if __name__ == "__main__":
-    my_zip = input(
-        'Please specify the relative path to the ZIP file containing the Full File System : ')
 
+    zip_in_directory = ""
+    latest_time = 0
+
+    # Parcourir les fichiers dans le répertoire courant
+    for file_name in os.listdir():
+        # Vérifier si le fichier a l'extension .zip
+        if file_name.endswith(".zip"):
+            # Obtenir la date de création du fichier
+            creation_time = os.path.getctime(file_name)
+            # Comparer avec la date la plus récente trouvée jusqu'à présent
+            if creation_time > latest_time:
+                latest_time = creation_time
+                zip_in_directory = file_name
+
+
+    my_zip = input(
+        f'Entre le chemin relatif vers le fichier ZIP contenant le Full File System ou laisse vide pour choisir le fichier par défaut [{zip_in_directory}]: ')
+
+    if not my_zip:
+        my_zip = zip_in_directory
     extract_zip(my_zip)
 
     # Suppression des répertoires inutiles (private...)
@@ -302,4 +320,4 @@ if __name__ == "__main__":
     with open('logs.txt', "w", encoding="utf-8") as log_file:
         log_file.writelines('\n'.join(logs))
 
-    input("Program complete. Press [ENTER] to exit the program... ")
+    input("Programme terminée. Press [ENTER] pour quitter le programme... ")

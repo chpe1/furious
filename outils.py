@@ -46,9 +46,9 @@ def write_file(lines_dict):
     except Exception:
         erreur += 1
     if erreur == 0:
-        print('A file named "furious.txt" has been created, which contains information about the Full File System.')
+        print('Un fichier nommé "furious.txt" a été créé, il contient les informations au propos du Full File System.')
     else:
-        print('An error occurred while creating the file "furious.txt".')
+        print('Une erreur s\'est produite lors de la création du fichier "furious.txt".')
 
 
 def format_mac(mac_bytes):
