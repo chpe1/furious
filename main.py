@@ -35,7 +35,7 @@ dict_unpath = {
     'Preferences/com.apple.aggregated.plist': apple.aggregated,
     'SystemConfiguration/NetworkInterfaces.plist': apple.networkinterface,
     'Accounts/Accounts3.sqlite': apple.accounts,
-    'Notes/notes.sqlite': apple.notes,
+    # 'Notes/notes.sqlite': apple.notes,
     'Lockdown/data_ark.plist': apple.data_ark,
     'Health/healthdb_secure.sqlite': apple.healthdb_secure,
     'Passes/passes23.sqlite': apple.pass23,
@@ -49,6 +49,7 @@ dict_unpath = {
     'Library/Preferences/com.burbn.instagram.plist': apple.instagram,
     '.obliterated': apple.obliterated,
     'Safari/History.db': apple.safari
+    # 'NoteStore.sqlite': None
 }
 
 # Crée le répertoire de sortie
@@ -103,20 +104,36 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                         try:
                             return_execution_func = function_to_execute()
                             lines_dict.append(return_execution_func)
-                            message_log = str(function_to_execute) + ' executed with success.'
+                            message_log = str(
+                                function_to_execute) + ' executed with success.'
                             if return_execution_func:
                                 message_log += ' => Data'
                             else:
                                 message_log += ' => No Data'
                             logs.append(message_log)
                         except Exception as e:
-                            message_log = 'An error occurred when executing the function ' + str(function_to_execute) + ' : ' + e
+                            message_log = 'An error occurred when executing the function ' + \
+                                str(function_to_execute) + ' : ' + e
                             print(message_log)
                             logs.append(message_log)
             else:
-                # Gestion du .obliterated qu'on n'a pas besoin d'extraire
-                lines_dict.append(function_to_execute(zip_ref, file_in_zip))
-                logs.append(f'{function_to_execute} executed with success.')
+                # Variable pour stocker le résultat
+                index_to_replace = None
+
+                # Parcourir chaque dictionnaire dans la liste avec son index
+                for index, d in enumerate(lines_dict):
+                    for key in d.keys():
+                        if "obliterated" in key:
+                            index_to_replace = index
+                            break  # On arrête la recherche dès que le terme est trouvé
+                    if index_to_replace is not None:
+                        break  # On arrête la boucle principale si le terme a été trouvé
+                if index_to_replace is None:
+                    # Gestion du .obliterated qu'on n'a pas besoin d'extraire
+                    lines_dict.append(
+                        function_to_execute(zip_ref, file_in_zip))
+                    logs.append(
+                        f'{function_to_execute} executed with success.')
 
 
 def extract_gallery(zip_ref, dcim_dir):
@@ -206,7 +223,8 @@ def extract_thumbnails(zip_ref, liste_photos):
     if len(medias_manquants) > 0:
         download = input(
             f'There are  {len(medias_manquants)} media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory. Would you like to download them? (Y, n): ')
-        logs.append('There are  ' + str(len(medias_manquants)) + ' media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
+        logs.append('There are  ' + str(len(medias_manquants)) +
+                    ' media thumbnails no longer in this phone\'s gallery but still present in the /private/var/mobile/Media/PhotoData/Thumbnails/V2/DCIM/ directory.')
     else:
         download = 'n'
         message_log = str(

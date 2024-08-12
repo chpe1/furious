@@ -588,6 +588,13 @@ def instagram():
 
 
 def pass23():
+    """
+    Query the pass23.sqlite database for extract payment into APPLE WALLET
+    Generates 1 csv with the payment and locations
+
+    Returns:
+        dict: A dictionary containing a list with the information on the created files.
+    """
     query = """
     SELECT
     DATETIME(transaction_date + 978307200, 'UNIXEPOCH', 'localtime') as "Date-fr-Transac",
