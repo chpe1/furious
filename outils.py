@@ -5,6 +5,7 @@ import datetime
 import shutil
 import configparser
 import requests
+import sys
 
 
 def write_file(lines_dict):
@@ -206,7 +207,14 @@ def remove_private_and_filesystems(directory):
 def read_api_key():
     # Lire la clé d'API depuis le fichier config.ini
     config = configparser.ConfigParser()
-    config.read('conf.ini')
+    # Accès au fichier de requêtes avec Pyinstaller
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    # Accès au fichier de requêtes normal
+    else:
+        base_path = os.path.abspath("conf.ini")
+    config_file_path = os.path.join(base_path, 'conf.ini')
+    config.read(config_file_path)
     return config['API']['key']
 
 

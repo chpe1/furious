@@ -6,9 +6,7 @@ import biplist
 import outils
 import json
 import sys
-import csv
 import pandas as pd
-import openpyxl
 
 
 def obliterated(zip_ref, path):
@@ -818,16 +816,18 @@ def location():
     result3 = outils.extract_and_save(query3, 'intmo.csv',
                                       "./db/cache.sqlite", 'LOCALISATIONS')
 
-    df = pd.read_csv('LOCALISATIONS/visited.csv')
+    df = pd.read_csv("LOCALISATIONS/visited.csv")
 
     is_geocode = input(
-        f'{len(df)} lieux visités ont été trouvés. Est-ce que tu veux les géocoder (attention ceci risque de prendre du temps) ? (Y, n): ')
+        f'{len(df)} lieux visités ont été trouvés. Est-ce que vous voulez les géocoder (attention ceci risque de prendre du temps) ? (Y, n): ')
 
     if is_geocode != 'n':
-        api_key = outils.read_api_key()
+        try:
+            api_key = outils.read_api_key()
+        except Exception as e:
+            print('ERREUR DE LECTURE DU FICHIER CONF.INI' + e)
 
-        print(
-            'Géocodage des lieux visités en cours... Cette opération peut prendre du temps...')
+        print("Géocodage des lieux visités en cours... Cette opération peut prendre du temps...")
         # Ajouter une colonne avec les résultats de l'API
         df['Adresse'] = df.apply(lambda row: outils.get_address(
             row['Latitude'], row['Longitude'], api_key), axis=1)
