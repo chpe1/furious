@@ -3,6 +3,8 @@ import csv
 import os
 import datetime
 import shutil
+import configparser
+import requests
 
 
 def write_file(lines_dict):
@@ -199,3 +201,24 @@ def remove_private_and_filesystems(directory):
     remove_directory(directory, 'private')
     remove_directory(directory, 'filesystem1')
     remove_directory(directory, 'filesystem2')
+
+
+def read_api_key():
+    # Lire la clé d'API depuis le fichier config.ini
+    config = configparser.ConfigParser()
+    config.read('conf.ini')
+    return config['API']['key']
+
+
+def get_address(lat, lon, api_key):
+    url = f"https://api.geoapify.com/v1/geocode/reverse?lat={
+        lat}&lon={lon}&format=json&apiKey={api_key}"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return data['results'][0]['formatted']
+        else:
+            return "API Error"
+    except Exception as e:
+        return str(e)

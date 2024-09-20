@@ -19,3 +19,4 @@ main2.py
 /.venv/*
 /__pycache__/*
 logs.txt
+conf.ini

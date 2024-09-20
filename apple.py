@@ -6,6 +6,9 @@ import biplist
 import outils
 import json
 import sys
+import csv
+import pandas as pd
+import openpyxl
 
 
 def obliterated(zip_ref, path):
@@ -31,7 +34,7 @@ def obliterated(zip_ref, path):
         *info.date_time).strftime('%d/%m/%Y à %H:%M:%S')
     if reinit != '':
         return {
-            'DATE DE REINITIALISATION (.obliterated):': [reinit]
+            'DATE DE REINITIALISATION (.obliterated) - Heure locale :': [reinit]
         }
     else:
         return {
@@ -777,4 +780,70 @@ def notes():
                 'Aucune note n\'a été trouvée dans la base de données notes.sqlite',
             ]
         }
+    return line_export
+
+
+def location():
+    """
+    Query the cache.sqlite database for extract apple locations
+    Generates 3 csv
+
+    Returns:
+        dict: A dictionary containing a list with the information on the created files.
+    """
+    query1 = """ 
+    SELECT 
+    DATETIME(ZDETECTIONDATE + 978307200, 'UNIXEPOCH') AS "DateDetection.UTC", 
+    DATETIME(ZENTRYDATE + 978307200, 'UNIXEPOCH') AS "DateEntree.UTC", 
+    DATETIME(ZEXITDATE + 978307200, 'UNIXEPOCH') AS "DateSortie.UTC", 
+    ZLOCATIONLATITUDE AS "Latitude", 
+    ZLOCATIONLONGITUDE AS "Longitude", 
+    ZLOCATIONUNCERTAINTY AS "IncertitudeLocalisation" 
+    FROM ZRTVISITMO
+    """
+
+    query2 = """ 
+    SELECT Z_PK, ZALTITUDE, ZLATITUDE, ZLONGITUDE, ZSPEED, DATETIME(ZTIMESTAMP + 978307200, 'UNIXEPOCH') as "Date.UTC"  FROM ZRTCLLOCATIONMO
+    """
+    query3 = """
+    SELECT Z_PK, ZDATE, ZLATITUDE, ZLONGITUDE FROM ZRTHINTMO
+    """
+
+    result1 = outils.extract_and_save(query1, 'visited.csv',
+                                      "./db/cache.sqlite", 'LOCALISATIONS')
+
+    result2 = outils.extract_and_save(query2, 'locationmo.csv',
+                                      "./db/cache.sqlite", 'LOCALISATIONS')
+
+    result3 = outils.extract_and_save(query3, 'intmo.csv',
+                                      "./db/cache.sqlite", 'LOCALISATIONS')
+
+    df = pd.read_csv('LOCALISATIONS/visited.csv')
+
+    is_geocode = input(
+        f'{len(df)} lieux visités ont été trouvés. Est-ce que tu veux les géocoder (attention ceci risque de prendre du temps) ? (Y, n): ')
+
+    if is_geocode != 'n':
+        api_key = outils.read_api_key()
+
+        print(
+            'Géocodage des lieux visités en cours... Cette opération peut prendre du temps...')
+        # Ajouter une colonne avec les résultats de l'API
+        df['Adresse'] = df.apply(lambda row: outils.get_address(
+            row['Latitude'], row['Longitude'], api_key), axis=1)
+
+        # Sauvegarder le nouveau fichier CSV
+        df.to_csv("./LOCALISATIONS/visited_geocoded.csv", index=False)
+
+        # Delete the original CSV file
+        os.remove("./LOCALISATIONS/visited.csv")
+
+    if result1 and result2 and result3:
+        line_export = {
+            'LOCALISATIONS :': [
+                'Le contenu de la base de données "cache.sqlite" été exporté dans le dossier LOCALISATIONS',
+            ]
+        }
+    else:
+        line_export = {[]}
     return line_export

@@ -1,1 +1,3 @@
 biplist
+openpyxl
+pandas

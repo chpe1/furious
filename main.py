@@ -14,7 +14,7 @@ print("""
 FORENSIC UTILITY FOR RAPID INFORMATION ON UNDECODED SYSTEMS
 @created by JN for LION 59
 @Licence MIT
-version : 1.2.6
+version : 1.2.7
 """
       )
 
@@ -35,7 +35,6 @@ dict_unpath = {
     'Preferences/com.apple.aggregated.plist': apple.aggregated,
     'SystemConfiguration/NetworkInterfaces.plist': apple.networkinterface,
     'Accounts/Accounts3.sqlite': apple.accounts,
-    # 'Notes/notes.sqlite': apple.notes,
     'Lockdown/data_ark.plist': apple.data_ark,
     'Health/healthdb_secure.sqlite': apple.healthdb_secure,
     'Passes/passes23.sqlite': apple.pass23,
@@ -48,8 +47,10 @@ dict_unpath = {
     'Documents/user.db': apple.waze,
     'Library/Preferences/com.burbn.instagram.plist': apple.instagram,
     '.obliterated': apple.obliterated,
-    'Safari/History.db': apple.safari
-    # 'NoteStore.sqlite': None
+    'Safari/History.db': apple.safari,
+    'com.apple.routined/Cache.sqlite': apple.location
+    # 'NoteStore.sqlite': None,
+    # 'Notes/notes.sqlite': apple.notes
 }
 
 # Crée le répertoire de sortie
@@ -298,7 +299,6 @@ if __name__ == "__main__":
             if creation_time > latest_time:
                 latest_time = creation_time
                 zip_in_directory = file_name
-
 
     my_zip = input(
         f'Entre le chemin relatif vers le fichier ZIP contenant le Full File System ou laisse vide pour choisir le fichier par défaut [{zip_in_directory}]: ')
