@@ -210,10 +210,10 @@ def read_api_key():
     # Accès au fichier de requêtes avec Pyinstaller
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
+        config_file_path = os.path.join(base_path, '')
     # Accès au fichier de requêtes normal
     else:
-        base_path = os.path.abspath("conf.ini")
-    config_file_path = os.path.join(base_path, 'conf.ini')
+        config_file_path = './conf.ini'
     config.read(config_file_path)
     return config['API']['key']
 

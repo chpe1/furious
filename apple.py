@@ -599,15 +599,15 @@ def pass23():
     query = """
     SELECT
     DATETIME(transaction_date + 978307200, 'UNIXEPOCH', 'localtime') as "Date-fr-Transac",
-    merchant_name as "marchand",
-    (amount /100) as "Mtt",
+    merchant_name as "Marchand",
+    (amount /10000) as "Montant",
     currency_code as "Devise",
     locality as "Ville",
     administrative_area as "Secteur",
-    af as "zone",
-    location_latitude as "lat",
-    location_longitude as "long",
-    location_horizontal_accuracy as "precision"
+    af as "Zone",
+    location_latitude as "Latitude",
+    location_longitude as "Longitude",
+    location_horizontal_accuracy as "Precision"
     FROM "main"."payment_transaction"
     """
     result = outils.extract_and_save(query, 'passes23.csv',

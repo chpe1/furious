@@ -27,6 +27,7 @@ logs = []
 message_log = ''
 
 dict_unpath = {
+    '.obliterated': apple.obliterated,
     'Preferences/com.apple.commcenter.plist': apple.commcenter,
     'Preferences/com.apple.Preferences.plist': apple.preferences,
     'Databases/CellularUsage.db': apple.cellular_usage,
@@ -38,19 +39,19 @@ dict_unpath = {
     'Lockdown/data_ark.plist': apple.data_ark,
     'Health/healthdb_secure.sqlite': apple.healthdb_secure,
     'Passes/passes23.sqlite': apple.pass23,
-    'PhotoData/Photos.sqlite': apple.photos,
     'SMS/sms.db': apple.sms,
     'activation_records/activation_record.plist': apple.activation_record,
     'arroyo/arroyo.db': None,
     'cachecontroller/cache_controller.db': None,
     'DocObjects/primary.docobjects': None,
     'Documents/user.db': apple.waze,
-    'Library/Preferences/com.burbn.instagram.plist': apple.instagram,
-    '.obliterated': apple.obliterated,
     'Safari/History.db': apple.safari,
-    'com.apple.routined/Cache.sqlite': apple.location
+    'Library/Preferences/com.burbn.instagram.plist': apple.instagram,
+    'com.apple.routined/Cache.sqlite': apple.location,
+    'PhotoData/Photos.sqlite': apple.photos,
     # 'NoteStore.sqlite': None,
     # 'Notes/notes.sqlite': apple.notes
+
 }
 
 # Crée le répertoire de sortie
@@ -114,7 +115,7 @@ def extract_unknown_path_file(zip_ref, file_to_extract, function_to_execute, db_
                             logs.append(message_log)
                         except Exception as e:
                             message_log = 'Une erreur s\'est produite lors de l\'exécution de la fonction ' + \
-                                str(function_to_execute) + ' : ' + e
+                                str(function_to_execute) + ' : ' + str(e)
                             print(message_log)
                             logs.append(message_log)
             else:
